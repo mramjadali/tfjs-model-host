@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TensorFlow.js Model Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+  <h1>Eye Infection Detection</h1>
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="predict()">Detect</button>
+  <p id="result"></p>
+
+  <script>
+    let model;
+
+    // Load the model from the hosted URL
+    async function loadModel() {
+      model = await tf.loadLayersModel('https://mramjadali.github.io/tfjs-model-host/model.json');
+      console.log('Model loaded successfully');
+    }
+
+    // Perform prediction
+    async function predict() {
+      const input = document.getElementById('imageInput');
+      if (input.files.length === 0) {
+        alert('Please upload an image');
+        return;
+      }
+
+      const file = input.files[0];
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = async () => {
+        const tensor = tf.browser.fromPixels(img)
+          .resizeNearestNeighbor([224, 224]) // Resize to match your model input size
+          .toFloat()
+          .expandDims();
+        
+        const prediction = model.predict(tensor);
+        const result = prediction.arraySync();
+
+        // Display the result
+        document.getElementById('result').innerText = `Prediction: ${JSON.stringify(result)}`;
+      };
+    }
+
+    // Load the model when the page loads
+    loadModel();
+  </script>
+</body>
+</html>
